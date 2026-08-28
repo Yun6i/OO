@@ -1,115 +1,232 @@
 <!DOCTYPE html>
 <html lang="zh‑CN">
 <head>
-    <meta charset="UTF‑8">
-    <meta name="viewport" content="width=device‑width, initial‑scale=1.0">
-    <title>抖音续火花控制台</title>
+    <meta charset="UTF‑8" />
+    <meta name="viewport" content="width=device‑width, initial‑scale=1.0"/>
+    <title>🔥抖音续火花‑Actions控制台</title>
     <style>
-        *{box‑sizing:border‑box;margin:0;padding:0;font‑family:system‑ui}
-        body{background:#161b22;color:#f0f6fc;padding:16px;max‑width:800px;margin:0 auto}
-        .card{background:#21262d;border‑radius:8px;padding:16px;margin‑bottom:14px;border:1px solid #30363d}
-        input,textarea{width:100%;background:#0d1117;border:1px solid #30363d;color:#f0f6fc;padding:10px;border‑radius:6px;margin‑top:6px;margin‑bottom:12px}
-        button{background:#238636;color:#fff;border:0;padding:10px 16px;border‑radius:6px;cursor:pointer;margin‑right:8px}
-        button:hover{background:#2ea043}
-        .danger{background:#da3633}
-        .danger:hover{background:#f85149}
-        pre{background:#0d1117;padding:12px;border‑radius:6px;overflow‑x:auto;font‑size:12px;white‑space:pre‑wrap}
-        .tip{color:#8b949e;font‑size:13px;margin:6px 0}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #0d1117;
+            color: #f0f6fc;
+            padding: 1rem;
+            max-width: 920px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #58a6ff;
+            margin-bottom: 1.25rem;
+            font-size: 1.6rem;
+        }
+        .card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .card h3 {
+            font-size:1.1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 0.75rem;
+        }
+        label {
+            display:block;
+            font-size: 0.875rem;
+            color:#c9d1d9;
+            margin: 0.75rem 0 0.3rem;
+        }
+        input, textarea {
+            width:100%;
+            background:#0d1117;
+            border:1px solid #30363d;
+            border-radius:6px;
+            padding:0.75rem;
+            color:#f0f6fc;
+            font-size:0.875rem;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .tip {
+            font-size:0.75rem;
+            color:#8b949e;
+            margin-top:0.3rem;
+        }
+        .btn-wrap {
+            display:flex;
+            flex-wrap:wrap;
+            gap:0.6rem;
+            margin-top:1rem;
+        }
+        button {
+            border:0;
+            border-radius:6px;
+            padding:0.7rem 1rem;
+            color:#fff;
+            font-size:0.875rem;
+            cursor:pointer;
+        }
+        .btn‑green {background:#238636;}
+        .btn‑green:hover {background:#2ea043;}
+        .btn‑blue {background:#2383e2;}
+        .btn‑danger {background:#da3633;}
+        pre {
+            background:#0d1117;
+            border:1px solid #30363d;
+            border-radius:6px;
+            padding:0.8rem;
+            font-size:0.75rem;
+            white-space:pre‑wrap;
+            max-height:280px;
+            overflow-y:auto;
+        }
+        .text‑ok {color:#3fb950;}
+        .text‑fail {color:#f85149;}
     </style>
 </head>
 <body>
-    <h1>🔥抖音续火花‑Actions控制台</h1>
+    <h1>🔥抖音续火花 Actions控制台</h1>
+
     <div class="card">
-        <h3>仓库配置</h3>
-        <div class="tip">例：owner: halfwaystudent  repo: douyin‑sparkflow  workflow文件名: send.yml</div>
-        <label>仓库Owner</label>
-        <input id="owner" placeholder="github用户名">
-        <label>仓库Repo</label>
-        <input id="repo" placeholder="仓库名字">
-        <label>Workflow文件名</label>
+        <h3>🔐 GitHub仓库配置</h3>
+        <label>Owner 用户名</label>
+        <input id="owner" placeholder="你的github用户名">
+
+        <label>Repo 仓库名</label>
+        <input id="repo" placeholder="douyin‑auto‑fire‑main">
+
+        <label>Workflow 文件名称</label>
         <input id="workflowFile" value="send.yml">
-        <label>GitHub PAT Token</label>
-        <textarea id="pat" placeholder="你的PAT，需要actions权限"></textarea>
-        <div class="tip">PAT权限勾选：actions，repo全部权限</div>
+
+        <label>PAT Token</label>
+        <textarea id="pat" placeholder="ghp_xxxxxxxxxxxx"></textarea>
+        <div class="tip">配置保存在浏览器本地，不会上传到任何服务器；PAT需要 repo + workflow权限</div>
     </div>
 
     <div class="card">
-        <h3>操作面板</h3>
-        <button onclick="triggerRun()">▶ 手动触发一次续火花任务</button>
-        <button onclick="getLatestRun()">ℹ 获取最近一次运行记录</button>
-        <button class="danger" onclick="clearLog()">🗑清空输出</button>
-        <div class="tip">GitHub自带cron定时不稳定，可用外部定时网站调用本API实现稳定定时</div>
+        <h3>🍪 Cookie粘贴区（本地记事）</h3>
+        <textarea id="cookieInput" placeholder="粘贴抖音Cookie JSON，仅本机存储，不会提交GitHub"></textarea>
+        <div class="tip">⚠️本页面无法写入GitHub Secrets，密钥请手动去仓库Secrets页面填写</div>
     </div>
 
     <div class="card">
-        <h3>接口返回日志</h3>
-        <pre id="log">等待操作...</pre>
+        <h3>🎮操作面板</h3>
+        <div class="btn-wrap">
+            <button class="btn‑green" onclick="triggerWorkflow()">▶ 触发续火花任务</button>
+            <button class="btn‑blue" onclick="fetchRunList()">📋获取运行记录</button>
+            <button class="btn‑danger" onclick="clearAllLocal()">🗑清空本地缓存</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📃执行日志</h3>
+        <pre id="logBox">等待操作...</pre>
+    </div>
+
+    <div class="card">
+        <h3>🕓最近任务列表</h3>
+        <pre id="runBox">点击【获取运行记录】加载</pre>
     </div>
 
 <script>
-const logDom = document.getElementById('log');
-function printLog(text){
-    logDom.innerText = text + '\n' + logDom.innerText;
-}
-function clearLog(){
-    logDom.innerText = '';
+const logBox = document.getElementById('logBox');
+const runBox = document.getElementById('runBox');
+const STORAGE_KEY = "douyin_fire_console_cfg";
+
+//读取本地缓存
+function loadConfig(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const cfg = JSON.parse(raw);
+    document.getElementById('owner').value = cfg.owner ?? "";
+    document.getElementById('repo').value = cfg.repo ?? "";
+    document.getElementById('workflowFile').value = cfg.workflowFile ?? "send.yml";
+    document.getElementById('pat').value = cfg.pat ?? "";
+    document.getElementById('cookieInput').value = cfg.cookie ?? "";
 }
 
-function getAuthHeader(){
+//保存配置
+function saveConfig(){
+    const cfg = {
+        owner: document.getElementById('owner').value.trim(),
+        repo: document.getElementById('repo').value.trim(),
+        workflowFile: document.getElementById('workflowFile').value.trim(),
+        pat: document.getElementById('pat').value.trim(),
+        cookie: document.getElementById('cookieInput').value
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+}
+
+function printLog(text){
+    const time = new Date().toLocaleString();
+    logBox.innerText = `[${time}] ${text}\n` + logBox.innerText;
+}
+
+function clearAllLocal(){
+    localStorage.removeItem(STORAGE_KEY);
+    document.querySelectorAll("input,textarea").forEach(el=>el.value="");
+    logBox.innerText = "";
+    runBox.innerText = "点击【获取运行记录】加载";
+    printLog("✅已清空浏览器全部本地缓存");
+}
+
+function getAuthHeaders(){
+    saveConfig();
     const pat = document.getElementById('pat').value.trim();
     return {
         "Authorization": `token ${pat}`,
-        "Accept":"application/vnd.github.v3+json"
+        "Accept": "application/vnd.github.v3+json",
+        "Content‑Type": "application/json"
     }
 }
 
-// 触发 workflow_dispatch
-async function triggerRun(){
+//触发workflow_dispatch
+async function triggerWorkflow(){
     const owner = document.getElementById('owner').value.trim();
     const repo = document.getElementById('repo').value.trim();
-    const workflow = document.getElementById('workflowFile').value.trim();
-    if(!owner||!repo||!workflow){
-        printLog('错误：请填写完整仓库信息和PAT');
+    const wfFile = document.getElementById('workflowFile').value.trim();
+    if(!owner || !repo || !wfFile){
+        printLog("❌请填写完整仓库信息以及PAT令牌");
         return;
     }
-    printLog("正在发送触发请求...");
+    printLog("正在发起触发请求...");
     try{
-        const resp = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflow}/dispatches`,{
+        const resp = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${wfFile}/dispatches`,{
             method:"POST",
-            headers:getAuthHeader(),
-            body:JSON.stringify({ref:"main"})
+            headers:getAuthHeaders(),
+            body: JSON.stringify({ref:"main"})
         })
         if(resp.ok){
-            printLog("✅触发成功！去Actions页面查看任务运行");
+            printLog("✅触发成功！前往仓库Actions页面观察任务");
         }else{
             const err = await resp.json();
-            printLog(`❌请求失败 status:${resp.status} \n${JSON.stringify(err,null,2)}`);
+            printLog(`❌HTTP ${resp.status} ${JSON.stringify(err,null,2)}`);
         }
-    }catch(e){
-        printLog(`❌网络异常：${e.message}\n本地直接打开HTML会跨域报错，部署GitHub Pages即可解决`);
+    }catch(err){
+        printLog(`❌请求异常：${err.message}`);
     }
 }
 
-// 获取最近一次运行记录
-async function getLatestRun(){
+//读取运行记录
+async function fetchRunList(){
     const owner = document.getElementById('owner').value.trim();
     const repo = document.getElementById('repo').value.trim();
-    if(!owner||!repo){
-        printLog('错误：填写仓库信息');
+    if(!owner || !repo){
+        printLog("❌填写用户名和仓库名称");
         return;
     }
-    printLog("查询最近运行记录...");
+    printLog("正在拉取最近运行记录...");
     try{
-        const resp = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs?per_page=1`,{
-            headers:getAuthHeader()
-        })
+        const resp = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs?per_page=8`,{
+            headers:getAuthHeaders()
+        });
         const data = await resp.json();
-        printLog(JSON.stringify(data,null,2));
-    }catch(e){
-        printLog(`❌异常 ${e.message}`)
-    }
-}
-</script>
-</body>
-</html>
-
+        if(data.total_co
