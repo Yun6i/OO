@@ -164,4 +164,52 @@ def test_run_all_accounts_no_enabled_accounts_skips(monkeypatch) -> None:
         return 0
 
     monkeypatch.setattr(runner_module, "load_accounts", lambda: [])
-    monkeypatch.setattr(r
+    monkeypatch.setattr(runner_module, "_parse_cli_args", lambda: SimpleNamespace(dry_run=False, env_file=None))
+    monkeypatch.setattr(runner_module, "run", fake_run)
+
+    assert runner_module.run_all_accounts() == 0
+    assert calls == []
+
+
+def test_run_all_accounts_missing_env_file_fails_only_that_account(monkeypatch, tmp_path: Path) -> None:
+    env_a = tmp_path / ".env.missing"
+    env_b = _env_file(tmp_path, ".env.b", "DOUYIN_COOKIE=cookie-b\n")
+    seen: list[str] = []
+
+    async def fake_run(dry_run: bool = False, env_file: str | None = None) -> int:
+        seen.append(os.environ["DOUYIN_COOKIE"])
+        return 0
+
+    monkeypatch.setattr(runner_module, "load_accounts", lambda: [_account("a", env_a), _account("b", env_b)])
+    monkeypatch.setattr(runner_module, "_parse_cli_args", lambda: SimpleNamespace(dry_run=False, env_file=None))
+    monkeypatch.setattr(runner_module, "run", fake_run)
+    monkeypatch.setattr(runner_module, "load_settings", lambda _env=None: SimpleNamespace(artifacts_dir=tmp_path / "artifacts"))
+    monkeypatch.setattr(runner_module, "_configure_logging", lambda *args, **kwargs: None)
+
+    assert runner_module.run_all_accounts() == 1
+    assert seen == ["cookie-b"]
+
+
+def test_run_all_accounts_uses_per_account_artifacts_dir(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.chdir(tmp_path)
+    env_a = _env_file(tmp_path, ".env.a", "DOUYIN_COOKIE=cookie-a\n")
+    lock_dirs: list[Path] = []
+
+    async def fake_run(dry_run: bool = False, env_file: str | None = None) -> int:
+        return 0
+
+    def fake_load_settings(env_file=None):
+        settings = SimpleNamespace(artifacts_dir=Path(os.environ["ARTIFACTS_DIR"]))
+        lock_dirs.append(settings.artifacts_dir)
+        return settings
+
+    monkeypatch.setattr(runner_module, "load_accounts", lambda: [_account("a", env_a)])
+    monkeypatch.setattr(runner_module, "_parse_cli_args", lambda: SimpleNamespace(dry_run=False, env_file=None))
+    monkeypatch.setattr(runner_module, "run", fake_run)
+    monkeypatch.setattr(runner_module, "load_settings", fake_load_settings)
+    monkeypatch.setattr(runner_module, "_configure_logging", lambda *args, **kwargs: None)
+
+    assert runner_module.run_all_accounts() == 0
+    assert lock_dirs == [Path("artifacts") / "a"]
+    assert (tmp_path / "artifacts" / "a").is_dir()
+    assert not (tmp_path / "artifacts" / "a" / "run.lock").exists()
