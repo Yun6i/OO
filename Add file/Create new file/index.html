@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh‑CN">
+<head>
+    <meta charset="UTF‑8">
+    <meta name="viewport" content="width=device‑width, initial‑scale=1.0">
+    <title>抖音续火花控制台</title>
+    <style>
+        *{box‑sizing:border‑box;margin:0;padding:0;font‑family:system‑ui}
+        body{background:#161b22;color:#f0f6fc;padding:16px;max‑width:800px;margin:0 auto}
+        .card{background:#21262d;border‑radius:8px;padding:16px;margin‑bottom:14px;border:1px solid #30363d}
+        input,textarea{width:100%;background:#0d1117;border:1px solid #30363d;color:#f0f6fc;padding:10px;border‑radius:6px;margin‑top:6px;margin‑bottom:12px}
+        button{background:#238636;color:#fff;border:0;padding:10px 16px;border‑radius:6px;cursor:pointer;margin‑right:8px}
+        button:hover{background:#2ea043}
+        .danger{background:#da3633}
+        .danger:hover{background:#f85149}
+        pre{background:#0d1117;padding:12px;border‑radius:6px;overflow‑x:auto;font‑size:12px;white‑space:pre‑wrap}
+        .tip{color:#8b949e;font‑size:13px;margin:6px 0}
+    </style>
+</head>
+<body>
+    <h1>🔥抖音续火花‑Actions控制台</h1>
+    <div class="card">
+        <h3>仓库配置</h3>
+        <div class="tip">例：owner: halfwaystudent  repo: douyin‑sparkflow  workflow文件名: send.yml</div>
+        <label>仓库Owner</label>
+        <input id="owner" placeholder="github用户名">
+        <label>仓库Repo</label>
+        <input id="repo" placeholder="仓库名字">
+        <label>Workflow文件名</label>
+        <input id="workflowFile" value="send.yml">
+        <label>GitHub PAT Token</label>
+        <textarea id="pat" placeholder="你的PAT，需要actions权限"></textarea>
+        <div class="tip">PAT权限勾选：actions，repo全部权限</div>
+    </div>
+
+    <div class="card">
+        <h3>操作面板</h3>
+        <button onclick="triggerRun()">▶ 手动触发一次续火花任务</button>
+        <button onclick="getLatestRun()">ℹ 获取最近一次运行记录</button>
+        <button class="danger" onclick="clearLog()">🗑清空输出</button>
+        <div class="tip">GitHub自带cron定时不稳定，可用外部定时网站调用本API实现稳定定时</div>
+    </div>
+
+    <div class="card">
+        <h3>接口返回日志</h3>
+        <pre id="log">等待操作...</pre>
+    </div>
+
+<script>
+const logDom = document.getElementById('log');
+function printLog(text){
+    logDom.innerText = text + '\n' + logDom.innerText;
+}
+function clearLog(){
+    logDom.innerText = '';
+}
+
+function getAuthHeader(){
+    const pat = document.getElementById('pat').value.trim();
+    return {
+        "Authorization": `token ${pat}`,
+        "Accept":"application/vnd.github.v3+json"
+    }
+}
+
+// 触发 workflow_dispatch
+async function triggerRun(){
+    const owner = document.getElementById('owner').value.trim();
+    const repo = document.getElementById('repo').value.trim();
+    const workflow = document.getElementById('workflowFile').value.trim();
+    if(!owner||!repo||!workflow){
+        printLog('错误：请填写完整仓库信息和PAT');
+        return;
+    }
+    printLog("正在发送触发请求...");
+    try{
+        const resp = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflow}/dispatches`,{
+            method:"POST",
+            headers:getAuthHeader(),
+            body:JSON.stringify({ref:"main"})
+        })
+        if(resp.ok){
+            printLog("✅触发成功！去Actions页面查看任务运行");
+        }else{
+            const err = await resp.json();
+            printLog(`❌请求失败 status:${resp.status} \n${JSON.stringify(err,null,2)}`);
+        }
+    }catch(e){
+        printLog(`❌网络异常：${e.message}\n本地直接打开HTML会跨域报错，部署GitHub Pages即可解决`);
+    }
+}
+
+// 获取最近一次运行记录
+async function getLatestRun(){
+    const owner = document.getElementById('owner').value.trim();
+    const repo = document.getElementById('repo').value.trim();
+    if(!owner||!repo){
+        printLog('错误：填写仓库信息');
+        return;
+    }
+    printLog("查询最近运行记录...");
+    try{
+        const resp = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs?per_page=1`,{
+            headers:getAuthHeader()
+        })
+        const data = await resp.json();
+        printLog(JSON.stringify(data,null,2));
+    }catch(e){
+        printLog(`❌异常 ${e.message}`)
+    }
+}
+</script>
+</body>
+</html>
+
